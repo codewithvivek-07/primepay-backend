@@ -15,22 +15,38 @@ const tranzupi = {
    */
   async createOrder({ customer_mobile, amount, order_id, redirect_url, remark1, remark2 }) {
     try {
+      console.log('--- TranzUPI API Request debug ---');
+      console.log('TRANZUPI_BASE_URL:', TRANZUPI_BASE_URL);
+      console.log('TRANZUPI_TOKEN configured:', !!TRANZUPI_TOKEN);
+      if (TRANZUPI_TOKEN) {
+        console.log('TRANZUPI_TOKEN length:', TRANZUPI_TOKEN.length);
+        console.log('TRANZUPI_TOKEN format:', TRANZUPI_TOKEN.substring(0, 4) + '...' + TRANZUPI_TOKEN.substring(TRANZUPI_TOKEN.length - 4));
+      }
+      
+      const payload = {
+        customer_mobile,
+        user_token: TRANZUPI_TOKEN,
+        amount,
+        order_id,
+        redirect_url,
+        remark1: remark1 || '',
+        remark2: remark2 || ''
+      };
+      
+      console.log('Sending payload:', {
+        ...payload,
+        user_token: TRANZUPI_TOKEN ? (TRANZUPI_TOKEN.substring(0, 4) + '...' + TRANZUPI_TOKEN.substring(TRANZUPI_TOKEN.length - 4)) : 'MISSING'
+      });
+
       const response = await axios.post(
         `${TRANZUPI_BASE_URL}/api/create-order`,
-        {
-          customer_mobile,
-          user_token: TRANZUPI_TOKEN,
-          amount,
-          order_id,
-          redirect_url,
-          remark1: remark1 || '',
-          remark2: remark2 || ''
-        },
+        payload,
         {
           headers: { 'Content-Type': 'application/json' },
           timeout: 15000
         }
       );
+      console.log('TranzUPI response data:', response.data);
       return { success: true, data: response.data };
     } catch (err) {
       return {
@@ -48,17 +64,25 @@ const tranzupi = {
    */
   async checkOrderStatus(order_id) {
     try {
+      console.log('--- TranzUPI checkOrderStatus debug ---');
+      console.log('order_id:', order_id);
+      const payload = {
+        user_token: TRANZUPI_TOKEN,
+        order_id
+      };
+      console.log('Sending check status payload:', {
+        ...payload,
+        user_token: TRANZUPI_TOKEN ? (TRANZUPI_TOKEN.substring(0, 4) + '...' + TRANZUPI_TOKEN.substring(TRANZUPI_TOKEN.length - 4)) : 'MISSING'
+      });
       const response = await axios.post(
         `${TRANZUPI_BASE_URL}/api/check-order-status`,
-        {
-          user_token: TRANZUPI_TOKEN,
-          order_id
-        },
+        payload,
         {
           headers: { 'Content-Type': 'application/json' },
           timeout: 15000
         }
       );
+      console.log('TranzUPI check status response:', response.data);
       return { success: true, data: response.data };
     } catch (err) {
       return {
